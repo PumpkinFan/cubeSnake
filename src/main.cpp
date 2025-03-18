@@ -1,5 +1,7 @@
 #include <iostream>
+#include <vector>
 #include "raylib.h"
+#include "cube.h"
 
 #define PLATFORM_WEB
 
@@ -13,6 +15,15 @@
 const int screenWidth = 800;
 const int screenHeight = 450;
 
+
+// Global struct for tracking game state variables
+struct GameState {
+    Camera3D camera;
+    std::vector<Cube> cubes = createCubes(5, 5, 5);
+};
+
+GameState game;
+
 //----------------------------------------------------------------------------------
 // Module functions declaration
 //----------------------------------------------------------------------------------
@@ -25,7 +36,15 @@ int main(void)
 {
     // Initialization
     //--------------------------------------------------------------------------------------
-    InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
+    InitWindow(screenWidth, screenHeight, "cubeSnake");
+
+    // Define camera into 3D world
+    game.camera.position = Vector3 { 10.0f, 10.0f, 10.0f }; // Camera position
+    game.camera.target = Vector3 { 0.0f, 0.0f, 0.0f };      // Camera looking at point
+    game.camera.up = Vector3 { 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
+    game.camera.fovy = 90.0f;                                // Camera field-of-view Y
+    game.camera.projection = CAMERA_PERSPECTIVE;             // Camera projection type
+
 
 #if defined(PLATFORM_WEB)
     emscripten_set_main_loop(UpdateDrawFrame, 0, 1);
@@ -55,16 +74,21 @@ void UpdateDrawFrame(void)
 {
     // Update
     //----------------------------------------------------------------------------------
-    // TODO: Update your variables here
-    //----------------------------------------------------------------------------------
-
+    UpdateCamera(&game.camera, CAMERA_FREE);
+    
     // Draw
     //----------------------------------------------------------------------------------
     BeginDrawing();
+    ClearBackground(RAYWHITE);
 
-        ClearBackground(RAYWHITE);
 
-        DrawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
+        BeginMode3D(game.camera);
+            // DrawSphere({ 0.0f, 0.0f, 0.0f }, 1.0f, BLUE);
+            for (Cube cube : game.cubes) {
+                cube.draw();
+            }
+        EndMode3D();
+    
 
     EndDrawing();
     //----------------------------------------------------------------------------------
